@@ -14,6 +14,7 @@ class EventsWidget(ListWidget):
         ('u', _('upcoming')),
         ('p', _('past')),
     ))
+
     category = models.ForeignKey(Category, null=True, blank=True,
                                  help_text=_('Leave blank for all categories.'))
 
@@ -24,10 +25,10 @@ class EventsWidget(ListWidget):
 
         if self.filter == 'u':
             events = Event.objects.filter(
-                start_time__gte=datetime.datetime.now).order_by('start_time')
+                end_time__gte=datetime.datetime.now).order_by('-start_time')
         elif self.filter == 'p':
             events = Event.objects.filter(
-                start_time__lte=datetime.datetime.now).order_by('start_time')
+                end_time__lte=datetime.datetime.now).order_by('start_time')
         else:
             events = Event.objects.all().order_by('start_time')
 
