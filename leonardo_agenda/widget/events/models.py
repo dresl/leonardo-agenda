@@ -17,10 +17,16 @@ class EventsWidget(ListWidget):
     ))
 
     category = models.ForeignKey(Category, null=True, blank=True,
-                                help_text=_('Leave blank for all categories.'))
+                                 help_text=_('Leave blank for all categories.'))
 
     venue = models.ForeignKey(Venue, null=True, blank=True,
                               help_text=_('Leave blank for all venues.'))
+
+    def get_calendar_items(self, request):
+        get_categories = Category.objects.filter(name__startswith="Pro")
+        events = Event.objects.filter(
+            categories=get_categories).order_by('-start_time')
+        return events
 
     def get_items(self, request):
         if self.filter == 'u':
@@ -97,6 +103,7 @@ class EventsWidget(ListWidget):
         data = {}
 
         data['get_items'] = self.get_items(request)
+        data['get_calendar_items'] = self.get_calendar_items(request)
 
         return data
 
