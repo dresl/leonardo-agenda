@@ -83,10 +83,26 @@ class EventsWidget(ListWidget):
             return events
         else:
             if self.category:
-                events = Event.objects.filter(
+                queryset = Event.objects.filter(
                     categories=self.category).order_by('-start_time')
             else:
-                events = Event.objects.all().order_by('-start_time')
+                queryset = Event.objects.all().order_by('-start_time')
+
+            paginator = Paginator(queryset, self.objects_per_page)
+
+            page = request.GET.get('page', None)
+
+            try:
+                events = paginator.page(page)
+            except PageNotAnInteger:
+
+                if page == "all":
+                    events = queryset
+                else:
+                    events = paginator.page(1)
+
+            except EmptyPage:
+                events = paginator.page(paginator.num_pages)
 
             return events
 
