@@ -25,6 +25,7 @@ class EventsWidget(ListWidget):
     def get_calendar_items(self, request):
         get_categories = Category.objects.filter(name__startswith="Pro")
         events = Event.objects.filter(
+            show_in_calendar=True,
             categories=get_categories).order_by('-start_time')
         return events
 
@@ -114,12 +115,95 @@ class EventsWidget(ListWidget):
 
         return events
 
+    def get_events_actions(self, request):
+        if self.filter == 'u':
+            if self.category:
+                queryset = Event.objects.filter(
+                    categories=self.category,
+                    upcoming_events=True,
+                    end_time__gte=datetime.datetime.now).order_by('start_time')
+            else:
+                queryset = Event.objects.filter(
+                    upcoming_events=True,
+                    end_time__gte=datetime.datetime.now).order_by('start_time')
+
+            paginator = Paginator(queryset, self.objects_per_page)
+
+            page = request.GET.get('page', None)
+
+            try:
+                events = paginator.page(page)
+            except PageNotAnInteger:
+
+                if page == "all":
+                    events = queryset
+                else:
+                    events = paginator.page(1)
+
+            except EmptyPage:
+                events = paginator.page(paginator.num_pages)
+
+            return events
+
+        elif self.filter == 'p':
+            if self.category:
+                queryset = Event.objects.filter(
+                    categories=self.category,
+                    upcoming_events=True,
+                    end_time__lte=datetime.datetime.now).order_by('-start_time')
+            else:
+                queryset = Event.objects.filter(
+                    upcoming_events=True,
+                    end_time__lte=datetime.datetime.now).order_by('-start_time')
+            paginator = Paginator(queryset, self.objects_per_page)
+
+            page = request.GET.get('page', None)
+
+            try:
+                events = paginator.page(page)
+            except PageNotAnInteger:
+
+                if page == "all":
+                    events = queryset
+                else:
+                    events = paginator.page(1)
+
+            except EmptyPage:
+                events = paginator.page(paginator.num_pages)
+
+            return events
+        else:
+            if self.category:
+                queryset = Event.objects.filter(
+                    upcoming_events=True,
+                    categories=self.category).order_by('-start_time')
+            else:
+                queryset = Event.objects.filter(upcoming_events=True).order_by('-start_time')
+
+            paginator = Paginator(queryset, self.objects_per_page)
+
+            page = request.GET.get('page', None)
+
+            try:
+                events = paginator.page(page)
+            except PageNotAnInteger:
+
+                if page == "all":
+                    events = queryset
+                else:
+                    events = paginator.page(1)
+
+            except EmptyPage:
+                events = paginator.page(paginator.num_pages)
+
+            return events
     def get_template_data(self, request, *args, **kwargs):
 
         data = {}
 
         data['get_items'] = self.get_items(request)
         data['get_calendar_items'] = self.get_calendar_items(request)
+        data['get_events_actions'] = self.get_events_actions(request)
 
         return data
 
