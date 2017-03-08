@@ -1,3 +1,4 @@
+# coding=utf-8
 
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
@@ -28,6 +29,17 @@ class EventsWidget(ListWidget):
             show_in_calendar=True,
             categories=get_categories).order_by('-start_time')
         return events
+
+    def get_semester_events(self, request):
+        get_categories = Category.objects.filter(name="NUVČ")
+        events = Event.objects.filter(
+            categories=get_categories).order_by('start_time')
+        return events
+
+    def get_semester_names(self, request):
+        get_semester_categories = Category.objects.filter(
+            name__contains=". semestr")
+        return get_semester_categories
 
     def get_items(self, request):
         if self.filter == 'u':
@@ -178,7 +190,8 @@ class EventsWidget(ListWidget):
                     upcoming_events=True,
                     categories=self.category).order_by('-start_time')
             else:
-                queryset = Event.objects.filter(upcoming_events=True).order_by('-start_time')
+                queryset = Event.objects.filter(
+                    upcoming_events=True).order_by('-start_time')
 
             paginator = Paginator(queryset, self.objects_per_page)
 
@@ -197,6 +210,7 @@ class EventsWidget(ListWidget):
                 events = paginator.page(paginator.num_pages)
 
             return events
+
     def get_template_data(self, request, *args, **kwargs):
 
         data = {}
@@ -204,6 +218,8 @@ class EventsWidget(ListWidget):
         data['get_items'] = self.get_items(request)
         data['get_calendar_items'] = self.get_calendar_items(request)
         data['get_events_actions'] = self.get_events_actions(request)
+        data['get_semester_events'] = self.get_semester_events(request)
+        data['get_semester_names'] = self.get_semester_names(request)
 
         return data
 
