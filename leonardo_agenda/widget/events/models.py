@@ -3,7 +3,7 @@
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from leonardo.module.web.models import ListWidget
-import datetime
+import datetime, calendar
 from elephantagenda.models import Category, Event, Venue
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
@@ -23,10 +23,40 @@ class EventsWidget(ListWidget):
     venue = models.ForeignKey(Venue, null=True, blank=True,
                               help_text=_('Leave blank for all venues.'))
 
-    def get_calendar_items(self, request):
+
+    def get_all_calendar_items(self, request):
+        def change_month(sourcedate, months):
+            month = sourcedate.month - 1 + months
+            year = int(sourcedate.year + month / 12)
+            month = month % 12 + 1
+            day = min(sourcedate.day, calendar.monthrange(year, month)[1])
+            return datetime.date(year, month, day)
+
+        today = datetime.date.today()
         get_categories = Category.objects.filter(name__startswith="Pro")
+        start_date = change_month(today, -4)
+        end_date = change_month(today, 5)
         events = Event.objects.filter(
             show_in_calendar=True,
+            categories=get_categories).order_by('-start_time')
+        events = events.exclude(start_time__range=(start_date, end_date))
+        return events
+
+    def get_calendar_items_on_load(self, request):
+        def change_month(sourcedate, months):
+            month = sourcedate.month - 1 + months
+            year = int(sourcedate.year + month / 12)
+            month = month % 12 + 1
+            day = min(sourcedate.day, calendar.monthrange(year, month)[1])
+            return datetime.date(year, month, day)
+
+        today = datetime.date.today()
+        get_categories = Category.objects.filter(name__startswith="Pro")
+        start_date = change_month(today,-4)
+        end_date = change_month(today, 5)
+        events = Event.objects.filter(
+            show_in_calendar=True,
+            start_time__range=(start_date, end_date),
             categories=get_categories).order_by('-start_time')
         return events
 
@@ -216,10 +246,11 @@ class EventsWidget(ListWidget):
         data = {}
 
         data['get_items'] = self.get_items(request)
-        data['get_calendar_items'] = self.get_calendar_items(request)
+        data['get_all_calendar_items'] = self.get_all_calendar_items(request)
         data['get_events_actions'] = self.get_events_actions(request)
         data['get_semester_events'] = self.get_semester_events(request)
         data['get_semester_names'] = self.get_semester_names(request)
+        data['get_calendar_items_on_load'] = self.get_calendar_items_on_load(request)
 
         return data
 

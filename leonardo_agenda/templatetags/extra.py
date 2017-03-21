@@ -1,7 +1,6 @@
 # coding=utf-8
 
 from django import template
-from elephantagenda.models import Category, Event
 
 register = template.Library()
 
