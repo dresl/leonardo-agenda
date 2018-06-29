@@ -34,8 +34,8 @@ class EventsWidget(ListWidget):
 
         today = datetime.date.today()
         get_categories = Category.objects.filter(name__startswith="Pro")
-        start_date = change_month(today, -4)
-        end_date = change_month(today, 5)
+        start_date = change_month(today, -2)
+        end_date = change_month(today, 2)
         events = Event.objects.filter(
             show_in_calendar=True,
             categories=get_categories).order_by('-start_time')
@@ -52,8 +52,8 @@ class EventsWidget(ListWidget):
 
         today = datetime.date.today()
         get_categories = Category.objects.filter(name__startswith="Pro")
-        start_date = change_month(today,-4)
-        end_date = change_month(today, 5)
+        start_date = change_month(today,-2)
+        end_date = change_month(today, 2)
         events = Event.objects.filter(
             show_in_calendar=True,
             start_time__range=(start_date, end_date),
